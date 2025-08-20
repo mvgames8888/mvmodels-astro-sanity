@@ -1,4 +1,9 @@
-import { defineType, defineField } from 'sanity'
+import {defineType, defineField} from 'sanity'
+
+// Schema definition for a "Modelo" document. This schema describes a model
+// with a name, a URL‑friendly slug, an optional introductory blurb, and
+// fields for nationality and place of residence. It also defines a photo
+// field using Sanity's built‑in image type with hotspot support.
 
 export default defineType({
   name: 'modelo',
@@ -9,7 +14,7 @@ export default defineType({
       name: 'name',
       title: 'Nombre',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
@@ -17,15 +22,15 @@ export default defineType({
       type: 'slug',
       options: {
         source: 'name',
-        slugify: (input) =>
-          input
+        slugify: (value) =>
+          value
             .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[\u0300-\u036f]/g, '') // remove diacritics
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, ''),
       },
-      validation: (Rule) => Rule.required(),
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'intro',
@@ -46,9 +51,7 @@ export default defineType({
       name: 'photo',
       title: 'Foto',
       type: 'image',
-      options: {
-        hotspot: true,
-      },
+      options: { hotspot: true },
     }),
   ],
 })
