@@ -1,0 +1,133 @@
+---
+import { sanity } from '../../lib/sanity'
+import { MODELOS_ALL } from '../../lib/queries'
+
+const modelos = await sanity.fetch(MODELOS_ALL);
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Modelos | MVMODELS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { --gold:#D4AF37; --bg:#0f172a; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; color:#111; }
+      header { position:sticky; top:0; background:rgba(15,23,42,.95); color:#fff; padding:.8rem 1rem; z-index:10; border-bottom:1px solid #334155 }
+      main { max-width:1200px; margin: 1.2rem auto; padding: 0 1rem; }
+      .toolbar { display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; margin:1rem 0; }
+      .toolbar input[type="search"]{ flex:1 1 260px; padding:.7rem 1rem; border:1px solid #cbd5e1; border-radius:10px }
+      .toolbar select { padding:.65rem .8rem; border:1px solid #cbd5e1; border-radius:10px }
+      .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); gap:1rem; }
+      .card { border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.06) }
+      .card img { width:100%; aspect-ratio: 3/4; object-fit:cover; background:#f3f4f6 }
+      .card .body { padding:.9rem }
+      .name { font-weight:700; margin:.2rem 0 .5rem 0; }
+      .tags { font-size:.9rem; color:#475569; }
+      .actions { display:flex; gap:.5rem; margin-top:.8rem; }
+      .btn { border:1px solid #111; background:#111; color:#fff; padding:.5rem .8rem; border-radius:10px; text-decoration:none; font-size:.92rem }
+      .btn.secondary { background:#fff; color:#111 }
+      dialog { border:none; border-radius:16px; width:min(680px, 95vw); padding:0; box-shadow:0 30px 80px rgba(0,0,0,.35) }
+      .sheet { padding:1rem 1.2rem }
+      .sheet h3 { margin:0 0 .2rem 0 }
+      .meta { color:#475569; margin:.3rem 0 .6rem 0 }
+      .close { position:absolute; top:.6rem; right:.8rem; border:none; background:#000; color:#fff; border-radius:8px; padding:.35rem .5rem; cursor:pointer }
+      @media (prefers-color-scheme: dark){
+        body{color:#e5e7eb; background:#0b1020}
+        .card{background:#0f1426; border-color:#1f2a44}
+        .btn.secondary{background:#0f1426; color:#e5e7eb; border-color:#334155}
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>MVMODELS</strong> · Modelos
+    </header>
+
+    <main>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Buscar por nombre…" aria-label="Buscar por nombre" />
+        <select id="sort" aria-label="Ordenar">
+          <option value="az" selected>Orden A–Z</option>
+          <option value="za">Orden Z–A</option>
+        </select>
+      </div>
+
+      <div id="grid" class="grid" role="list"></div>
+    </main>
+
+    <!-- Ficha modal -->
+    <dialog id="ficha">
+      <button class="close" aria-label="Cerrar" onclick="document.getElementById('ficha').close()">✕</button>
+      <img id="fichaImg" alt="" style="width:100%; aspect-ratio:3/2; object-fit:cover; background:#0b1020" />
+      <div class="sheet">
+        <h3 id="fichaName"></h3>
+        <div class="meta" id="fichaSlug"></div>
+        <p id="fichaIntro"></p>
+        <p><strong>Nacionalidad:</strong> <span id="fichaNac"></span></p>
+        <p><strong>Reside en:</strong> <span id="fichaRes"></span></p>
+      </div>
+    </dialog>
+
+    <script define:vars>
+      const MODELOS = modelos;
+
+      const grid = document.getElementById('grid');
+      const q = document.getElementById('q');
+      const sortSel = document.getElementById('sort');
+      const fichaDialog = document.getElementById('ficha');
+
+      function normalize(s=''){ return s.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().trim(); }
+
+      function render(list){
+        grid.innerHTML = '';
+        list.forEach(m => {
+          const imgSrc = `/images/models/${m.slug}.webp`;
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <img src="${imgSrc}" alt="${m.name}" onerror="this.src='https://via.placeholder.com/800x1000?text=Modelo'">
+            <div class="body">
+              <div class="name">${m.name}</div>
+              <div class="tags">${m.nationality ?? ''} ${m.resides ? '· Reside: '+m.resides : ''}</div>
+              <div class="actions">
+                <button class="btn" data-slug="${m.slug}">Ver ficha</button>
+                <a class="btn secondary" href="/modelos/${m.slug}">Perfil</a>
+              </div>
+            </div>`;
+          grid.appendChild(card);
+        });
+        grid.querySelectorAll('button[data-slug]').forEach(btn=>{
+          btn.addEventListener('click', e=>{
+            const slug = e.currentTarget.getAttribute('data-slug');
+            const m = list.find(x=>x.slug===slug);
+            if(!m) return;
+            document.getElementById('fichaImg').src = `/images/models/${m.slug}.webp`;
+            document.getElementById('fichaImg').onerror = function(){ this.src='https://via.placeholder.com/1200x800?text=Modelo' };
+            document.getElementById('fichaName').textContent = m.name;
+            document.getElementById('fichaSlug').textContent = `/${m.slug}`;
+            document.getElementById('fichaIntro').textContent = m.intro || '';
+            document.getElementById('fichaNac').textContent = m.nationality || '—';
+            document.getElementById('fichaRes').textContent = m.resides || '—';
+            fichaDialog.showModal();
+          });
+        });
+      }
+
+      function apply(){
+        const term = normalize(q.value);
+        let list = MODELOS.slice();
+        if(term){
+          list = list.filter(m => normalize(m.name).includes(term));
+        }
+        const dir = sortSel.value;
+        list.sort((a,b) => a.name.localeCompare(b.name, 'es', { sensitivity:'base' }) * (dir === 'az' ? 1 : -1));
+        render(list);
+      }
+
+      q.addEventListener('input', apply);
+      sortSel.addEventListener('change', apply);
+      render(MODELOS);
+    </script>
+  </body>
+</html>
