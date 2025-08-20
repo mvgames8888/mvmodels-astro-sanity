@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/base",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
+  "include": [".astro/types.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["dist", "studio/**", "node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -10,7 +10,7 @@
       "@layouts/*": ["src/layouts/*"],
       "@styles/*": ["src/styles/*"],
       "@utils/*": ["src/utils/*"],
-      "@data/*": ["src/data/*"],
+      "@data/*": ["src/data/*"]
     },
     "jsx": "react"
   }
