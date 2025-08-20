@@ -37,3 +37,25 @@ export const schemaTypes = [
   testimonial,
   testimonialsSection,
 ]
+import modelo from './modelo'
+export const schemaTypes = [
+  actionButton,
+  actionLink,
+  backgroundImage,
+  badge,
+  card,
+  cardsSection,
+  company,
+  ctaSection,
+  customImage,
+  footer,
+  header,
+  heroSection,
+  logosSection,
+  page,
+  person,
+  siteConfig,
+  testimonial,
+  testimonialsSection,
+  modelo,       // ← añade esta línea
+]
