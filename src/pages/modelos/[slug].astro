@@ -1,0 +1,58 @@
+---
+import { sanity } from '../../lib/sanity'
+import { MODELO_BY_SLUG } from '../../lib/queries'
+
+export async function getStaticPaths() {
+  const list = await sanity.fetch(`*[_type=="modelo"]{ "slug": slug.current }`);
+  return list
+    .filter((x) => x.slug)
+    .map((x) => ({ params: { slug: x.slug } }));
+}
+
+const { slug } = Astro.params;
+const m = await sanity.fetch(MODELO_BY_SLUG, { slug });
+
+if (!m) {
+  throw new Error('Modelo no encontrado');
+}
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>{m.name} | MVMODELS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { --gold:#D4AF37; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; color:#111; }
+      header { position:sticky; top:0; background:#0f172a; color:#fff; padding:.8rem 1rem; border-bottom:1px solid #334155 }
+      main { max-width:1000px; margin: 1rem auto; padding: 0 1rem; display:grid; gap:1.2rem; grid-template-columns: 1fr 1fr; }
+      img { width:100%; border-radius:16px; background:#f3f4f6; object-fit:cover; aspect-ratio: 3/4; }
+      h1 { margin:.2rem 0 .8rem 0 }
+      .meta { color:#475569; margin:.3rem 0 .8rem 0 }
+      .back { display:inline-block; margin: .8rem 0; text-decoration:none; color:#111; border:1px solid #111; padding:.45rem .7rem; border-radius:10px }
+      @media (max-width: 760px){ main{ grid-template-columns: 1fr; } }
+      @media (prefers-color-scheme: dark){
+        body{background:#0b1020; color:#e5e7eb}
+        .back{color:#e5e7eb; border-color:#334155}
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="back" href="/modelos">← Volver</a>
+    </header>
+    <main>
+      <section>
+        <img src={`/images/models/${m.slug}.webp`} alt={m.name} onerror="this.src='https://via.placeholder.com/1000x1300?text=Modelo'"/>
+      </section>
+      <section>
+        <h1>{m.name}</h1>
+        <div class="meta">/{m.slug}</div>
+        <p><strong>Intro:</strong> {m.intro ?? '—'}</p>
+        <p><strong>Nacionalidad:</strong> {m.nationality ?? '—'}</p>
+        <p><strong>Reside en:</strong> {m.resides ?? '—'}</p>
+      </section>
+    </main>
+  </body>
+</html>
