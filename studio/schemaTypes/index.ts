@@ -16,6 +16,7 @@ import person from './person'
 import siteConfig from './siteConfig'
 import testimonial from './testimonial'
 import testimonialsSection from './testimonialsSection'
+import modelo from './modelo'
 
 export const schemaTypes = [
   actionButton,
@@ -35,27 +36,7 @@ export const schemaTypes = [
   person,
   siteConfig,
   testimonial,
-  testimonialsSection,
+  ttestimonialsSection,
+  modelo,,
 ]
-import modelo from './modelo'
-export const schemaTypes = [
-  actionButton,
-  actionLink,
-  backgroundImage,
-  badge,
-  card,
-  cardsSection,
-  company,
-  ctaSection,
-  customImage,
-  footer,
-  header,
-  heroSection,
-  logosSection,
-  page,
-  person,
-  siteConfig,
-  testimonial,
-  testimonialsSection,
-  modelo,       // ← añade esta línea
-]
+
