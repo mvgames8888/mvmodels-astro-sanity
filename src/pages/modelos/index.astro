@@ -77,12 +77,24 @@ const modelos = await sanity.fetch(MODELOS_ALL);
       const sortSel = document.getElementById('sort');
       const fichaDialog = document.getElementById('ficha');
 
+      // Búsqueda sin acentos
       function normalize(s=''){ return s.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().trim(); }
+
+      // Convierte el nombre de la modelo al nombre EXACTO del archivo .webp que subiste
+      // (minúsculas, espacios→guiones, mantiene tildes y ñ, elimina otros signos)
+      function fileNameFromName(name=''){
+        return name
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9áéíóúüñ-]/g, '');
+      }
 
       function render(list){
         grid.innerHTML = '';
         list.forEach(m => {
-          const imgSrc = `/images/models/${m.slug}.webp`;
+          const fileName = fileNameFromName(m.name);
+          const imgSrc = `/images/models/${fileName}.webp`;
           const card = document.createElement('article');
           card.className = 'card';
           card.innerHTML = `
@@ -97,13 +109,18 @@ const modelos = await sanity.fetch(MODELOS_ALL);
             </div>`;
           grid.appendChild(card);
         });
+
+        // Eventos de "Ver ficha"
         grid.querySelectorAll('button[data-slug]').forEach(btn=>{
           btn.addEventListener('click', e=>{
             const slug = e.currentTarget.getAttribute('data-slug');
             const m = list.find(x=>x.slug===slug);
             if(!m) return;
-            document.getElementById('fichaImg').src = `/images/models/${m.slug}.webp`;
+
+            const fileName = fileNameFromName(m.name);
+            document.getElementById('fichaImg').src = `/images/models/${fileName}.webp`;
             document.getElementById('fichaImg').onerror = function(){ this.src='https://via.placeholder.com/1200x800?text=Modelo' };
+
             document.getElementById('fichaName').textContent = m.name;
             document.getElementById('fichaSlug').textContent = `/${m.slug}`;
             document.getElementById('fichaIntro').textContent = m.intro || '';
